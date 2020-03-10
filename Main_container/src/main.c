@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include "./Container/container.h"
 #include "elem.h"
-#include "error.h"
 
 int main(int argc, char* argv[]) {
 #ifdef WIN32
@@ -30,10 +29,14 @@ int main(int argc, char* argv[]) {
 #endif // WIN32
 
 	struct s_container * pC = NULL;
+	int test = 3;
+
 
 	printf("============================ENTER AppContainer============================\r\n");
 
-	pC = ContainerNew(ElemDel);
+	pC = ContainerNew(NULL);
+
+	ContainerPushback(pC, (int) &test);
 
 	pC = ContainerDel(pC);
 

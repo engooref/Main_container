@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "container.h"
 
 typedef struct tt_node {
@@ -22,37 +23,38 @@ t_node* NodeNew(t_node*pPrev, t_node*pNext, void*pElem) {
 
 	pNewNode = (t_node*) malloc ( sizeof(t_node*) );
 
-	if(pNewNode != NULL) {
-		pNewNode->pNext = pNext;
-		pNewNode->pPrev = pPrev;
-		pNewNode->pElem = pElem;
+	assert(pNewNode != NULL);
 
-		if(pPrev != NULL){
-			if(pNext != NULL){
-				pPrev->pNext = pNewNode;
-				pNext->pPrev = pNewNode;
-			}
-			else { pPrev->pNext = pNewNode; }
-		}
-		else {
-			if(pNext != NULL) { pNext->pPrev = pNewNode; }
-		}
-	}
+	pNewNode->pNext = pNext;
+	pNewNode->pPrev = pPrev;
+	pNewNode->pElem = pElem;
+
+	if(pNext != NULL)
+		pNext->pPrev = pNewNode;
+
+	if(pPrev != NULL)
+		pPrev->pNext = pNewNode;
+
+
 	return pNewNode;
 }
 
 t_node* NodeDel(t_node*pNode, t_ptfV pDelElemFunc) {
 
-	t_node*pNextNode;
-
+	t_node* pNextNode;
 	pNextNode = pNode->pNext;
-	pNode->pPrev->pNext = pNextNode;
-	pNextNode->pPrev = pNode->pPrev;
 
-	pDelElemFunc(pNode->pElem);
+	if(pDelElemFunc != NULL){ pDelElemFunc(pNode->pElem); }
+	else 					{ free(pNode->pElem); }
+
+	if(pNode->pPrev != NULL)
+		pNode->pPrev->pNext = pNode->pNext;
+	if(pNode->pNext != NULL)
+		pNode->pNext->pPrev = pNode->pPrev;
+
+
 
 	free(pNode);
-	pNode = NULL;
 
 	return pNextNode;
 }
@@ -98,19 +100,19 @@ struct s_container* ContainerDel(struct s_container*pContainer) {
 
 void* ContainerPushback(struct s_container*pContainer, void*pElem){
 
+	assert(pContainer != NULL);
+
 	t_node* nodePushBack;
 	nodePushBack = NodeNew(pContainer->pTail, NULL, pElem);
 
 	if(nodePushBack != NULL){
-
-		if(pContainer->pHead == NULL) {
+		if(pContainer->nCard == 0)
 			pContainer->pHead = nodePushBack;
-		}
 
 		pContainer->pTail = nodePushBack;
 	}
-	else { return NULL; }
 
+	pContainer->nCard++;
 	return nodePushBack;
 }
 
@@ -120,14 +122,13 @@ void* ContainerPushfront(struct s_container*pContainer, void*pElem){
 
 	if(nodePushFront != NULL){
 
-		if(pContainer->pTail == NULL) {
+		if(pContainer->nCard == 0)
 			pContainer->pTail = nodePushFront;
-		}
 
 		pContainer->pHead = nodePushFront;
 	}
-	else { return NULL; }
 
+	pContainer->nCard++;
 	return nodePushFront;
 
 }
