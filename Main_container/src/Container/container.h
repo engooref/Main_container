@@ -7,7 +7,9 @@
 
 typedef void*(*t_ptfV)(void*);
 
-typedef void*(t_ptfVV)(void*, void*);
+typedef void*(*t_ptfVV)(void*, void*);
+
+typedef void*(*t_ptfVVV)(void*, void*, void*);
 
 struct s_container* ContainerNew(t_ptfV pDelElemFunc);
 
@@ -24,3 +26,8 @@ void* ContainerGetat(struct s_container*pContainer, int nAt);
 void* ContainerPopback(struct s_container*pContainer);
 void* ContainerPopfront(struct s_container*pContainer);
 void* ContainerPopat(struct s_container*pContainer, int nAt);
+
+void* ContainerParse(struct s_container*pContainer, t_ptfVV pfParseFunc, void*pParam);
+void* ContainerSort(struct s_container*pContainer, t_ptfVVV pSortFunc, void*pParam);
+
+

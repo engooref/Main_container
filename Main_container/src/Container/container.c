@@ -21,7 +21,7 @@ t_node* NodeNew(t_node*pPrev, t_node*pNext, void*pElem) {
 
 	 t_node*pNewNode;
 
-	pNewNode = (t_node*) malloc ( sizeof(t_node*) );
+	pNewNode = (t_node*) malloc ( sizeof(t_node) );
 
 	assert(pNewNode != NULL);
 
@@ -41,9 +41,6 @@ t_node* NodeNew(t_node*pPrev, t_node*pNext, void*pElem) {
 
 t_node* NodeDel(t_node*pNode, t_ptfV pDelElemFunc) {
 
-	t_node* pNextNode;
-	pNextNode = pNode->pNext;
-
 	if(pDelElemFunc != NULL){ pDelElemFunc(pNode->pElem); }
 	else 					{ free(pNode->pElem); }
 
@@ -56,7 +53,7 @@ t_node* NodeDel(t_node*pNode, t_ptfV pDelElemFunc) {
 
 	free(pNode);
 
-	return pNextNode;
+	return NULL;
 }
 
 struct s_container {
@@ -69,7 +66,7 @@ struct s_container {
 struct s_container* ContainerNew(t_ptfV pDelElemFunc) {
 	struct s_container* pNewContainer;
 
-	pNewContainer = (struct s_container*) malloc( sizeof(struct s_container*) );
+	pNewContainer = (struct s_container*) malloc( sizeof(struct s_container) );
 
 	if(pNewContainer != NULL) {
 		pNewContainer->nCard = 0;
@@ -83,10 +80,12 @@ struct s_container* ContainerNew(t_ptfV pDelElemFunc) {
 
 struct s_container* ContainerDel(struct s_container*pContainer) {
 
-	t_node* pScan;
-	pScan = pContainer->pHead;
-
-	while(pScan != NULL) { pScan = NodeDel( pScan, pContainer->pDelElemFunc );  }
+	while(pContainer->pHead != NULL){
+		pContainer->pTail = pContainer->pHead;
+		pContainer->pHead = pContainer->pHead->pNext;
+		NodeDel(pContainer->pTail, pContainer->pDelElemFunc);
+		pContainer->nCard--;
+	}
 
 	pContainer->pHead = NULL;
 	pContainer->pTail = NULL;
@@ -94,7 +93,7 @@ struct s_container* ContainerDel(struct s_container*pContainer) {
 
 	free(pContainer);
 
-	return pContainer;
+	return NULL;
 }
 
 
@@ -113,7 +112,7 @@ void* ContainerPushback(struct s_container*pContainer, void*pElem){
 	}
 
 	pContainer->nCard++;
-	return nodePushBack;
+	return nodePushBack->pElem;
 }
 
 void* ContainerPushfront(struct s_container*pContainer, void*pElem){
@@ -129,58 +128,112 @@ void* ContainerPushfront(struct s_container*pContainer, void*pElem){
 	}
 
 	pContainer->nCard++;
-	return nodePushFront;
+	return nodePushFront->pElem;
 
 }
 
 void* ContainerPushat(struct s_container*pContainer, void*pElem, int nAt){
 
 		if(nAt <= pContainer->nCard){
-		t_node* nodePushAt, *pScan;
-		int k = 0;
-		pScan = pContainer->pHead;
+			t_node* nodePushAt, *pScan;
+			pScan = pContainer->pHead;
 
-		while(k != nAt) { pScan = pScan->pNext; k++; }
+		while(--nAt) { pScan = pScan->pNext; }
 		nodePushAt = NodeNew(pScan, pScan->pNext, pElem);
 
-		if(nodePushAt != NULL) { return nodePushAt; }
-		else {return NULL; }
+		return nodePushAt->pElem;
 	}
 	else { return NULL; }
 }
 
 
 void* ContainerGetback(struct s_container*pContainer){
-	t_node* pNodeTail;
-	pNodeTail = pContainer->pTail;
-
-	return pNodeTail->pElem;
+	if(pContainer->pTail->pElem)
+		return pContainer->pTail->pElem;
+	else
+		return NULL;
 }
 
 void* ContainerGetfront(struct s_container*pContainer){
-	t_node* pNodeHead;
-		pNodeHead = pContainer->pHead;
-
-		return pNodeHead->pElem;
+	if(pContainer->pHead->pElem)
+			return pContainer->pHead->pElem;
+		else
+			return NULL;
 }
 
 void* ContainerGetat(struct s_container*pContainer, int nAt){
 	if(nAt <= pContainer->nCard){
-		t_node* pNodeAt;
-		pNodeAt = pContainer->pHead;
-
-		while (--nAt != 0) { pNodeAt = pNodeAt->pNext; }
-		return pNodeAt->pElem;
+		t_node* pScan = pContainer->pHead;
+		while (--nAt != 0) { pScan = pScan->pNext; }
+		if(pScan->pElem)
+			return pScan->pElem;
+		else
+			return NULL;
 	}
 	else { return NULL;}
 }
 
 void* ContainerPopback(struct s_container*pContainer){
+	if(pContainer->pTail->pElem) {
 
+		t_node* pTailC = pContainer->pTail->pPrev;
+		void* pElem = pContainer->pTail->pElem;
+		NodeDel(pContainer->pTail, pContainer->pDelElemFunc);
+		pContainer->pTail = pTailC;
+		pContainer->nCard--;
+		return pElem;
+
+	} else { return NULL; }
 }
 void* ContainerPopfront(struct s_container*pContainer){
+	if(pContainer->pHead->pElem) {
 
+		t_node* pHeadC = pContainer->pHead->pNext;
+
+		void* pElem = pContainer->pHead->pElem;
+		NodeDel(pContainer->pHead, pContainer->pDelElemFunc);
+		pContainer->pHead = pHeadC;
+		pContainer->nCard--;
+		return pElem;
+
+	} else { return NULL; }
 }
 void* ContainerPopat(struct s_container*pContainer, int nAt){
+	if(nAt <= pContainer->nCard){
+			t_node* pScan = pContainer->pHead;
+			while (--nAt != 0) { pScan = pScan->pNext; }
+			if(pScan->pElem) {
+
+				void* pElem = pScan->pElem;
+				NodeDel(pScan, pContainer->pDelElemFunc);
+				pContainer->nCard--;
+				return pElem;
+
+			} else { return NULL; }
+		}
+		else { return NULL; }
+}
+
+void* ContainerParse(struct s_container*pContainer, t_ptfVV pfParseFunc, void*pParam){
+
+	t_node* pScan;
+	pScan = pContainer->pHead;
+	while(pScan != NULL) {
+		pfParseFunc(pScan->pElem, pParam);
+		pScan = pScan->pNext;
+	}
+	return NULL;
+}
+
+void* ContainerSort(struct s_container*pContainer, t_ptfVVV pSortFunc, void*pParam) {
+	t_node* pScan;
+	pScan = pContainer->pHead;
+	
+	while (pScan != NULL){
+		pSortFunc(pScan);
+		pScan = pScan->pNext;
+	}
+
+	return pScan;
 
 }

@@ -29,17 +29,22 @@ int main(int argc, char* argv[]) {
 #endif // WIN32
 
 	struct s_container * pC = NULL;
-	int test = 3;
+	char buf[256];
+	printf("============================ENTER AppContainer============================\n");
+
+	pC = ContainerNew((t_ptfV)ElemDel);
 
 
-	printf("============================ENTER AppContainer============================\r\n");
+	for(int k = 0; k < 20; k++) {
+		sprintf(buf, "Hello World %d!", k*2000);
+		ContainerPushfront(pC, ElemNew(k, (k + 0.5 * 5), buf));
+	}
+	ContainerParse(pC, (t_ptfVV)ElemPrint, NULL);
 
-	pC = ContainerNew(NULL);
 
-	ContainerPushback(pC, (int) &test);
 
 	pC = ContainerDel(pC);
 
-	printf("============================EXIT  AppContainer============================\r\n");
+	printf("============================EXIT  AppContainer============================\n");
 	return EXIT_SUCCESS;
 }
